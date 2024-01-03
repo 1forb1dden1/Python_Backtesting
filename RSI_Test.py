@@ -2,16 +2,16 @@ from backtesting import Backtest, Strategy
 import talib
 import yfinance as yf
 
-data = yf.download("O", start="2023-11-07", end="2023-12-29", interval="15m")
+data = yf.download("TSLA", start="2023-11-07", end="2023-12-29", interval="15m")
 
 data = data[['Open', 'High', 'Low', 'Close', 'Volume']]
 
 class Rsi(Strategy):
     # RSI strategy parameters
-    buy_threshold = 15
+    buy_threshold = 40
     rsi_window = 14
-    take_profit = 1.07
-    stop_loss = 0.95
+    take_profit = 1.05
+    stop_loss = 0.97
     current_price = 0
 
     def init(self):
@@ -27,19 +27,18 @@ class Rsi(Strategy):
             self.buy()
             self.current_price = self.data.Close[-1]
         
-        #Take Profit
-        elif self.data.Close > self.take_profit * self.current_price:
-            self.position.close()
-
-        #Stop Loss
-        elif self.data.Close < self.stop_loss * self.current_price:
+        #Take Profit & Stop Loss (BRACKET)
+        #elif self.data.Close > self.take_profit * self.current_price or self.data.Close < self.stop_loss * self.current_price:
+        #    self.position.close()
+        
+        elif current_rsi >= 70:
             self.position.close()
 
 # Backtest with RSI strategy
 bt = Backtest(data, Rsi, cash=10_000, commission=(0.00))
 
 stats = bt.optimize(
-    buy_threshold=25,
+    buy_threshold=35,
 )
 
 # Print optimization results
